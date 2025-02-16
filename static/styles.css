@@ -1,0 +1,90 @@
+/* 📌 전체 레이아웃 */
+body {
+    background-color: #f8f9fa;
+}
+
+/* 📌 카드 스타일 개선 */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 📌 버튼 스타일 */
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* 📌 Select2 스타일 */
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: white;
+}
+
+/* 📌 조회 연도 슬라이더 */
+.slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.form-range {
+    width: 40%;
+}
+
+.year-label {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* 📌 데이터 차트 및 JSON 결과 */
+#gdpPlot, #jsonData {
+    display: none;
+}
+
+#jsonData {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+/* 국가 선택 드롭다운 검색 필터 스타일 */
+#countries {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* 로딩 스피너 숨기기 (조회 중에만 표시됨) */
+#loading {
+    display: none;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* 로딩 스피너 숨기기 (조회 중에만 표시됨) */
+#loading-countries {
+    display: none;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* 오류 메시지 스타일 */
+#alert-box {
+    display: none;
+    margin-top: 10px;
+}
