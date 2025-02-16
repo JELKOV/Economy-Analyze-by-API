@@ -25,21 +25,36 @@ def fetch_imf_data(indicator, countries, years, max_retries=3):
     for attempt in range(max_retries):  # 최대 3번 재시도
         try:
             response = requests.get(api_url, timeout=10)
-            response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
-
+            response.raise_for_status()
             data = response.json()
 
-            # 응답 데이터 확인
-            if not data:
-                print("⚠️ [WARNING] IMF API 응답이 비어 있음!")
+            # 🔍 API 응답 확인
+            print("🔍 [DEBUG] IMF API 응답 데이터:", data)
+
+            # 데이터 변환: "values" 키 안의 값들을 DataFrame으로 변환
+            values = data.get("values", {}).get(indicator, {})
+            """
+            API 응답 data에서 "values" 키가 존재하면 해당 값을 가져옴
+            "values" 키가 존재하지 않는 경우 {} (빈 딕셔너리) 반환하여 KeyError 방지
+            values에서 사용자가 요청한 지표 ID(indicator) 데이터를 가져옴
+            예를 들어 indicator="NGDPD" (국내총생산 GDP)라면 "values" 내부에서 "NGDPD"에 해당하는 값을 가져옴
+            해당 지표 ID가 없으면 {} (빈 딕셔너리) 반환하여 KeyError 방지
+            """
+            if not values:
+                print("⚠️ [WARNING] IMF API 데이터가 없음!")
                 return None
 
-            df = pd.DataFrame(data)
-            if df.empty:
-                print("⚠️ [WARNING] 데이터가 없음!")
-                return None
+            records = []
+            for country, year_data in values.items():
+                for year, value in year_data.items():
+                    records.append({"Year": int(year), "Country": country, "Value": value})
 
-            return df
+            df = pd.DataFrame(records)
+
+            # 🔍 변환된 데이터 확인
+            print("🔍 [DEBUG] 변환된 데이터프레임:\n", df.head())
+
+            return df if not df.empty else None
 
         except requests.exceptions.Timeout:
             print(f"⏳ IMF API 요청 시간이 초과됨. ({attempt + 1}/{max_retries} 재시도 중...)")
@@ -49,8 +64,8 @@ def fetch_imf_data(indicator, countries, years, max_retries=3):
 
         time.sleep(2)  # 2초 대기 후 재시도
 
-    print("🚨 [ERROR] IMF API 재시도 후에도 실패!")
-    return None
+        print("🚨 [ERROR] IMF API 재시도 후에도 실패!")
+        return None
 
 
 # 📌 경제 지표 리스트 가져오기
@@ -65,7 +80,13 @@ def list_indicators():
         return jsonify({"error": "지표 목록을 가져오는 데 실패했습니다."}), 500
 
     data = response.json()
+    print(f"indicators 리스트: {data}")
     indicators = {code: details["label"] for code, details in data["indicators"].items() if details["label"]}
+    """
+    code: 경제 지표 코드 (NGDP_RPCH, PPPGDP, LUR 등)
+    details["label"]: 경제 지표의 한글 설명 (Real GDP Growth (%), GDP, current prices (PPP), Unemployment Rate (%))
+    if details["label"]: 라벨이 존재하는 경우만 포함 (빈 값이 있는 경우 제외)
+    """
 
     return jsonify(indicators)
 
@@ -82,6 +103,7 @@ def list_countries():
         return jsonify({"error": "국가 목록을 가져오는 데 실패했습니다."}), 500
 
     data = response.json()
+    print(f"countries 리스트: {data}")
     countries = {code: details["label"] for code, details in data["countries"].items() if details["label"]}
 
     return jsonify(countries)
@@ -110,25 +132,28 @@ def get_data():
 @app.route('/plot-data', methods=['GET'])
 def plot_data():
     """
-    IMF 경제 데이터를 그래프로 시각화하는 API 엔드포인트
-    :return: PNG 이미지 (플롯)
+    IMF 데이터 시각화 API
+    선택된 경제 지표, 국가, 연도에 대한 데이터를 시각화하여 PNG 이미지로 반환
     """
-    indicator = request.args.get('indicator', 'NGDP_RPCH')
+    indicator = request.args.get('indicator', 'NGDPD')
     countries = request.args.get('countries', 'USA,CHN')
     years = request.args.get('years', '2010,2024')
 
     df = fetch_imf_data(indicator, countries, years)
 
-    if df is None:
+    if df is None or df.empty:
         return jsonify({"error": "데이터를 가져오는 데 실패했습니다."}), 500
 
     # 📊 그래프 그리기
     plt.figure(figsize=(10, 5))
+
     for country in countries.split(","):
         country_df = df[df["Country"] == country]
+
         if country_df.empty:
             print(f"⚠️ [WARNING] {country}에 대한 데이터가 없음!")
             continue
+
         plt.plot(country_df["Year"], country_df["Value"], marker="o", linestyle="-", label=country)
 
     plt.xlabel("Year")

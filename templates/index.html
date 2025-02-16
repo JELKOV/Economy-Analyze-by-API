@@ -4,127 +4,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMF 경제 데이터 분석</title>
+
+    <!-- ✅ Bootstrap + Select2 추가 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
     <script>
-        // 🌍 IMF API에서 사용 가능한 경제 지표 목록 가져오기
-        function loadIndicators() {
-            fetch('/list-indicators')
-                .then(response => response.json())
-                .then(data => {
-                    let indicatorSelect = document.getElementById("indicator");
-                    indicatorSelect.innerHTML = ""; // 기존 옵션 제거
+        $(document).ready(function () {
+            // 🌍 IMF API에서 사용 가능한 경제 지표 목록 가져오기
+            function loadIndicators() {
+                fetch('/list-indicators')
+                    .then(response => response.json())
+                    .then(data => {
+                        let indicatorSelect = $("#indicator");
+                        indicatorSelect.empty().append(new Option("경제 지표를 선택하세요", ""));
 
-                    // 기본 옵션 추가
-                    let defaultOption = document.createElement("option");
-                    defaultOption.value = "";
-                    defaultOption.textContent = "경제 지표를 선택하세요";
-                    indicatorSelect.appendChild(defaultOption);
-
-                    // 지표 목록 추가
-                    for (const key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            let option = document.createElement("option");
-                            option.value = key;
-                            option.textContent = `${data[key]}`;  // 지표명 표시
-                            indicatorSelect.appendChild(option);
-                        }
-                    }
-                })
-                .catch(error => console.error("Error loading indicators:", error));
-        }
-
-        // 🌍 IMF API에서 사용 가능한 국가 목록 가져오기
-        function loadCountries() {
-            fetch('/list-countries')
-                .then(response => response.json())
-                .then(data => {
-                    let countrySelect = document.getElementById("countries");
-                    countrySelect.innerHTML = ""; // 기존 옵션 제거
-
-                    // 기본 옵션 추가
-                    let defaultOption = document.createElement("option");
-                    defaultOption.value = "";
-                    defaultOption.textContent = "국가를 선택하세요 (Ctrl+클릭으로 다중 선택 가능)";
-                    countrySelect.appendChild(defaultOption);
-
-                    // 국가 목록 추가
-                    for (const key in data) {
-                        if (data.hasOwnProperty(key) && data[key]) {
-                            let option = document.createElement("option");
-                            option.value = key;
-                            option.textContent = `${data[key]}`; // 국가명 표시
-                            countrySelect.appendChild(option);
-                        }
-                    }
-                })
-                .catch(error => console.error("Error loading countries:", error));
-        }
-
-        // 🌍 IMF 데이터 요청 및 그래프 업데이트
-        function fetchData() {
-            let indicator = document.getElementById("indicator").value;
-            let countrySelect = document.getElementById("countries");
-            let years = document.getElementById("years").value;
-
-            // 선택된 국가들을 배열로 변환하여 ','로 연결
-            let selectedCountries = Array.from(countrySelect.selectedOptions).map(option => option.value).join(',');
-
-            // 필수 값이 비어 있을 경우 경고 메시지 표시
-            if (!indicator) {
-                alert("📌 경제 지표를 선택하세요.");
-                return;
-            }
-            if (!selectedCountries) {
-                alert("📌 최소 한 개 이상의 국가를 선택하세요.");
-                return;
+                        $.each(data, function (key, value) {
+                            indicatorSelect.append(new Option(value, key));
+                        });
+                    })
+                    .catch(error => console.error("Error loading indicators:", error));
             }
 
-            let apiUrl = `/get-data?indicator=${indicator}&countries=${selectedCountries}&years=${years}`;
-            let plotUrl = `/plot-data?indicator=${indicator}&countries=${selectedCountries}&years=${years}`;
+            // 🌍 IMF API에서 사용 가능한 국가 목록 가져오기
+            function loadCountries() {
+                fetch('/list-countries')
+                    .then(response => response.json())
+                    .then(data => {
+                        let countrySelect = $("#countries");
+                        countrySelect.empty();
 
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        document.getElementById("jsonData").innerText = "❌ 데이터가 없습니다.";
-                        document.getElementById("gdpPlot").src = "";
-                    } else {
-                        document.getElementById("jsonData").innerText = JSON.stringify(data, null, 2);
-                        document.getElementById("gdpPlot").src = plotUrl;
-                    }
-                })
-                .catch(error => console.error("Error fetching data:", error));
-        }
+                        $.each(data, function (key, value) {
+                            countrySelect.append(new Option(value, key));
+                        });
 
-        // 페이지 로드 시 IMF 경제 지표 및 국가 목록 가져오기
-        window.onload = function() {
+                        // ✅ Select2 플러그인 적용 (검색 가능)
+                        countrySelect.select2({
+                            placeholder: "국가를 선택하세요 (다중 선택 가능)",
+                            allowClear: true
+                        });
+                    })
+                    .catch(error => console.error("Error loading countries:", error));
+            }
+
+            // 🌍 IMF 데이터 요청 및 그래프 업데이트
+            function fetchData() {
+                let indicator = $("#indicator").val();
+                let countries = $("#countries").val();
+                let startYear = $("#startYear").val();
+                let endYear = $("#endYear").val();
+
+                if (!indicator) {
+                    alert("📌 경제 지표를 선택하세요.");
+                    return;
+                }
+                if (!countries || countries.length === 0) {
+                    alert("📌 최소 한 개 이상의 국가를 선택하세요.");
+                    return;
+                }
+
+                let years = `${startYear},${endYear}`;
+                let apiUrl = `/get-data?indicator=${indicator}&countries=${countries.join(',')}&years=${years}`;
+                let plotUrl = `/plot-data?indicator=${indicator}&countries=${countries.join(',')}&years=${years}`;
+
+                // ✅ 로딩 스피너 표시
+                $("#loading").show();
+                $("#gdpPlot").hide();
+
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        $("#loading").hide();
+                        $("#gdpPlot").show();
+
+                        if (data.error) {
+                            $("#jsonData").text("❌ 데이터가 없습니다.");
+                            $("#gdpPlot").attr("src", "no-data.png");
+                        } else {
+                            $("#jsonData").text(JSON.stringify(data, null, 2));
+                            $("#gdpPlot").attr("src", plotUrl);
+                        }
+                    })
+                    .catch(error => console.error("Error fetching data:", error));
+            }
+
+            // 🌍 연도 범위 슬라이더 값 업데이트
+            function updateYearLabel() {
+                let startYear = $("#startYear").val();
+                let endYear = $("#endYear").val();
+                $("#yearLabel").text(`${startYear} ~ ${endYear}`);
+            }
+
+            // 🌍 슬라이더 값 변경 이벤트 연결
+            $("#startYear, #endYear").on("input", function () {
+                let startYear = parseInt($("#startYear").val());
+                let endYear = parseInt($("#endYear").val());
+
+                // 🛠 만약 시작연도가 종료연도보다 크다면, 종료연도를 자동으로 조정
+                if (startYear > endYear) {
+                    $("#endYear").val(startYear);
+                }
+
+                updateYearLabel();
+            });
+
+            // 🌍 페이지 로드 시 IMF 경제 지표 및 국가 목록 가져오기
             loadIndicators();
             loadCountries();
-        };
+
+            // ✅ "조회" 버튼 이벤트 등록
+            $("#fetchDataBtn").click(function (e) {
+                e.preventDefault();
+                fetchData();
+            });
+
+            // ✅ 초기 연도 설정
+            updateYearLabel();
+        });
     </script>
+
+    <style>
+        .container { max-width: 900px; }
+        #loading { display: none; text-align: center; margin-top: 10px; }
+        .card { box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); border-radius: 10px; }
+    </style>
 </head>
-<body>
-    <h1>📊 IMF 경제 데이터 분석</h1>
+<body class="container mt-5">
 
-    <form onsubmit="event.preventDefault(); fetchData();">
-        <label for="indicator">경제 지표 선택:</label>
-        <select id="indicator"></select> <!-- 지표 리스트를 동적으로 불러옴 -->
-        <br><br>
+    <h1 class="text-center mb-4">📊 IMF 경제 데이터 분석</h1>
 
-        <label for="countries">국가 선택 (다중 선택 가능):</label>
-        <select id="countries" multiple size="5"></select> <!-- 국가 리스트를 동적으로 불러옴 -->
-        <br><br>
+    <!-- ✅ 검색 폼 UI 개선 -->
+    <div class="card p-4">
+        <form>
+            <div class="mb-3">
+                <label for="indicator" class="form-label">경제 지표 선택:</label>
+                <select id="indicator" class="form-control"></select>
+            </div>
 
-        <label for="years">조회 연도 입력 (예: 2010,2024):</label>
-        <input type="text" id="years" value="2010,2024" required>
-        <br><br>
+            <div class="mb-3">
+                <label for="countries" class="form-label">국가 선택 (검색 가능, 다중 선택):</label>
+                <select id="countries" class="form-control" multiple></select>
+            </div>
 
-        <button type="submit">데이터 조회</button>
-    </form>
+            <!-- ✅ 연도 범위 설정 -->
+            <div class="mb-3">
+                <label class="form-label">조회 연도 범위:</label>
+                <div class="d-flex align-items-center">
+                    <input type="range" id="startYear" min="1980" max="2025" value="2010" step="1" class="form-range me-3">
+                    <span class="fw-bold">~</span>
+                    <input type="range" id="endYear" min="1980" max="2025" value="2025" step="1" class="form-range ms-3">
+                </div>
+                <p id="yearLabel" class="text-center">2010 ~ 2024</p>
+            </div>
 
-    <h2>📊 경제 데이터 차트</h2>
-    <img id="gdpPlot" src="" alt="경제 데이터 차트" width="600">
+            <button id="fetchDataBtn" class="btn btn-primary w-100">📊 데이터 조회</button>
+        </form>
+    </div>
 
-    <h2>📄 JSON 데이터</h2>
-    <pre id="jsonData" style="background-color: #f4f4f4; padding: 10px; border-radius: 5px;"></pre>
+    <!-- ✅ 로딩 스피너 -->
+    <div id="loading">
+        <img src="{{ url_for('static', filename='loading-spinner.gif') }}" alt="Loading..." width="50">
+    </div>
+
+    <!-- 📊 데이터 차트 -->
+    <div class="card mt-4 p-4">
+        <h2>📊 경제 데이터 차트</h2>
+        <img id="gdpPlot" src="" alt="경제 데이터 차트" width="100%">
+    </div>
+
+    <!-- 📄 JSON 데이터 -->
+    <div class="card mt-4 p-4">
+        <h2>📄 JSON 데이터</h2>
+        <pre id="jsonData" class="bg-light p-3 rounded"></pre>
+    </div>
+
+    <!-- ✅ Bootstrap JS 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
