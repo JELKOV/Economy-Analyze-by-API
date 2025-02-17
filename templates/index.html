@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMF 경제 데이터 분석</title>
 
-    <!-- ✅ Bootstrap + Select2 추가 -->
+    <!-- Bootstrap + Select2 추가 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- ✅ SweetAlert2 CSS (선택 사항) -->
+    <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 
@@ -31,7 +31,7 @@
 
             <div id="country-count" class="text-center mt-2 text-primary fw-bold"></div>
 
-            <!-- ✅ 국가 목록 로딩용 -->
+            <!-- 국가 목록 로딩용 -->
             <div id="loading-countries" class="text-center mt-3" style="display: none;">
                 <img src="{{ url_for('static', filename='loading-spinner.gif') }}" alt="Loading..." width="50">
                 <p id="loading-message" class="text-muted mt-2">국가 목록을 불러오는 중...</p>
@@ -42,7 +42,7 @@
                 <select id="countries" class="form-control" multiple></select>
             </div>
 
-            <!-- ✅ 전체 선택 & 그룹 선택/해제 버튼 추가 -->
+            <!-- 전체 선택 & 그룹 선택/해제 버튼 추가 -->
             <div class="btn-group w-100 mb-3">
                 <button id="selectAll" class="btn btn-outline-success">🌍 전체 선택</button>
                 <button id="deselectAll" class="btn btn-outline-danger" style="display: none;">❌ 전체 해제</button>
@@ -97,25 +97,28 @@
         <img src="{{ url_for('static', filename='loading-spinner.gif') }}" alt="Loading..." width="50">
     </div>
 
-    <!-- 📊 데이터 차트 -->
+    <!-- 데이터 차트 -->
     <div class="card mt-4 p-4">
         <h2 class="text-primary fw-bold">📊 경제 데이터 차트</h2>
         <img id="gdpPlot" src="" alt="경제 데이터 차트" width="100%">
     </div>
 
-    <!-- 📄 JSON 데이터 -->
+    <!-- JSON 데이터 -->
     <div class="card mt-4 p-4">
         <h2 class="text-primary fw-bold">📄 JSON 데이터</h2>
         <pre id="jsonData" class="bg-light p-3 rounded"></pre>
     </div>
 
-    <footer class="bg-white text-black-50 text-center py-3 mt-5">
-        <p>📢 프로젝트 개발: <strong>JELKOV</strong> | 데이터 출처: <a href="https://www.imf.org/" class="text-black-50" target="_blank">IMF 공식 사이트</a></p>
-        <p>© 2025 IMF 데이터 분석 프로젝트. All Rights Reserved.</p>
+    <footer class="footer bg-gradient text-black text-center py-4 mt-5">
+        <div class="container">
+            <p class="fw-bold">📢 프로젝트 개발자: <strong>JELKOV</strong></p>
+            <p>데이터 출처: <a href="https://www.imf.org/" class="text-black fw-bold" target="_blank">IMF 공식 사이트</a></p>
+            <p>© 2025 IMF 데이터 분석 프로젝트. All Rights Reserved.</p>
+        </div>
     </footer>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <!-- ✅ SweetAlert2 JS -->
+    <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
