@@ -1,17 +1,33 @@
-/* 📌 전체 레이아웃 */
+/*  전체 레이아웃 */
 body {
-    background-color: #f8f9fa;
+    background: linear-gradient(to right, #f8f9fa, #eef2f3);
+    font-family: 'Pretendard', sans-serif; /* 가독성 좋은 폰트 적용 */
+    color: #333;
 }
 
-/* 📌 카드 스타일 개선 */
+/* 푸터 스타일 */
+footer {
+    border-top: 4px solid #f8f9fa;
+    font-size: 0.9rem;
+}
+
+
+/*  카드 스타일 개선 */
 .card {
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    background: white;
+    transition: all 0.3s ease-in-out;
 }
 
-/* 📌 버튼 스타일 */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/*  버튼 스타일 개선 */
 .btn-primary {
-    background-color: #007bff;
+    background: linear-gradient(45deg, #007bff, #00c6ff);
     border: none;
     font-size: 1.2rem;
     font-weight: bold;
@@ -21,11 +37,34 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
+    background: linear-gradient(45deg, #0056b3, #0099ff);
+    transform: scale(1.08);
 }
 
-/* 📌 Select2 스타일 */
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-primary {
+    font-weight: bold;
+    padding: 10px;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/*  Select2 스타일 */
 .select2-container--default .select2-selection--multiple {
     border: 1px solid #ced4da;
     border-radius: 8px;
@@ -33,7 +72,7 @@ body {
     background-color: white;
 }
 
-/* 📌 조회 연도 슬라이더 */
+/*  조회 연도 슬라이더 스타일 */
 .slider-container {
     display: flex;
     align-items: center;
@@ -43,6 +82,7 @@ body {
 
 .form-range {
     width: 40%;
+    accent-color: #007bff; /* 슬라이더 색상 변경 */
 }
 
 .year-label {
@@ -50,7 +90,17 @@ body {
     color: #007bff;
 }
 
-/* 📌 데이터 차트 및 JSON 결과 */
+/*  로딩 스피너 애니메이션 */
+#loading img, #loading-countries img {
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/*  데이터 차트 및 JSON 결과 */
 #gdpPlot, #jsonData {
     display: none;
 }
@@ -60,31 +110,16 @@ body {
     padding: 15px;
     border-radius: 10px;
     font-size: 1rem;
+    font-family: 'Courier New', monospace;
 }
 
-/* 국가 선택 드롭다운 검색 필터 스타일 */
-#countries {
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
-}
+/*  반응형 디자인 (모바일 최적화) */
+@media (max-width: 768px) {
+    .form-range {
+        width: 90%;
+    }
 
-/* 로딩 스피너 숨기기 (조회 중에만 표시됨) */
-#loading {
-    display: none;
-    text-align: center;
-    margin-top: 10px;
-}
-
-/* 로딩 스피너 숨기기 (조회 중에만 표시됨) */
-#loading-countries {
-    display: none;
-    text-align: center;
-    margin-top: 10px;
-}
-
-/* 오류 메시지 스타일 */
-#alert-box {
-    display: none;
-    margin-top: 10px;
+    .btn-group {
+        flex-direction: column;
+    }
 }

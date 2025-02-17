@@ -79,6 +79,16 @@
                 <p id="yearLabel" class="text-center text-primary fw-bold">2010 ~ 2025</p>
             </div>
 
+            <div class="mb-3">
+                <label for="chartType" class="form-label fw-bold">그래프 타입 선택:</label>
+                <select id="chartType" class="form-control">
+                    <option value="line">📈 선 그래프 (Line Chart)</option>
+                    <option value="bar">📊 막대 그래프 (Bar Chart)</option>
+                    <option value="pie">🥧 원형 그래프 (Pie Chart)</option>
+                    <option value="heatmap">🔥 히트맵 (Heatmap)</option>
+                </select>
+            </div>
+
             <button id="fetchDataBtn" class="btn btn-primary w-100">📊 데이터 조회</button>
         </form>
     </div>
@@ -98,6 +108,11 @@
         <h2 class="text-primary fw-bold">📄 JSON 데이터</h2>
         <pre id="jsonData" class="bg-light p-3 rounded"></pre>
     </div>
+
+    <footer class="bg-white text-black-50 text-center py-3 mt-5">
+        <p>📢 프로젝트 개발: <strong>JELKOV</strong> | 데이터 출처: <a href="https://www.imf.org/" class="text-black-50" target="_blank">IMF 공식 사이트</a></p>
+        <p>© 2025 IMF 데이터 분석 프로젝트. All Rights Reserved.</p>
+    </footer>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <!-- ✅ SweetAlert2 JS -->

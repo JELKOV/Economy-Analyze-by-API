@@ -2,6 +2,7 @@ from flask import Flask, jsonify, render_template, request, send_file
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 import time
 from flask_caching import Cache
@@ -63,6 +64,9 @@ def fetch_imf_data(indicator, countries, years, max_retries=3):
         time.sleep(1)  # 1초 대기 후 다음 요청
 
     df = pd.DataFrame(all_records) # 데이터프레임 변환
+
+    # 올바른 국가만 남기기
+    df = df[df["Country"].isin(country_list)]
     return df if not df.empty else None # 데이터가 없으면 None 반환
 
 # IMF 경제 지표 목록 가져오기 API
@@ -151,12 +155,14 @@ def get_data():
     """
     indicator = request.args.get('indicator', 'NGDP_RPCH')  # 기본값: GDP 성장률
     countries = request.args.get('countries', 'USA,CHN')  # 기본값: 미국, 중국
+    print(f"🛠 [DEBUG] 요청된 국가 목록: {countries}")  # 요청된 국가 확인
     years = request.args.get('years', '2010,2024')  # 기본 조회 연도
 
     df = fetch_imf_data(indicator, countries, years)
 
     # 데이터 가져오기
     if df is not None:
+        print(f"📌 [DEBUG] 데이터 미리보기:\n{df.head()}")
         return df.to_json(orient='records', date_format='iso')
 
     return jsonify({"error": "데이터를 가져오는 데 실패했습니다."}), 500
@@ -167,8 +173,7 @@ def get_data():
 def plot_data():
     """
     IMF 데이터 시각화 API
-    - 선택된 경제 지표, 국가, 연도에 대한 데이터를 조회하여 시각적으로 표현
-    - Matplotlib을 사용하여 라인 차트로 시각화하고 PNG 이미지로 반환
+    - 선택된 경제 지표, 국가, 연도에 대한 데이터를 다양한 차트로 시각화하여 PNG 이미지로 반환
     """
     # 사용자가 요청한 경제 지표 (기본값: 'NGDPD' → 명목 GDP)
     indicator = request.args.get('indicator', 'NGDPD')
@@ -176,6 +181,9 @@ def plot_data():
     countries = request.args.get('countries', 'USA,CHN')
     # 사용자가 요청한 연도 범위 (기본값: '2010,2024')
     years = request.args.get('years', '2010,2024')
+    # 기본값은 Line Chart
+    chart_type = request.args.get('type', 'line')
+    print(chart_type)
 
     # IMF API에서 해당 지표, 국가, 연도에 대한 데이터를 가져옴
     df = fetch_imf_data(indicator, countries, years)
@@ -187,30 +195,47 @@ def plot_data():
     # 그래프 생성 시작
     plt.figure(figsize=(10, 5)) # 그래프 크기 설정 (가로 10인치, 세로 5인치)
 
-    # 요청된 각 국가별 데이터를 그래프에 추가
-    for country in countries.split(","): # 입력받은 국가 목록을 ','로 분할하여 리스트로 변환
-        country_df = df[df["Country"] == country] # 특정 국가에 대한 데이터 필터링
+    if chart_type == "bar":
+        # 막대 그래프
+        sns.barplot(x="Year", y="Value", hue="Country", data=df)
+        plt.title(f"IMF Data ({indicator}) - Bar Chart")
+    elif chart_type == "pie":
+        # 원형 그래프
+        latest_year = df["Year"].max()
+        df_latest = df[df["Year"] == latest_year]
+        plt.pie(df_latest["Value"], labels=df_latest["Country"], autopct="%1.1f%%", startangle=140)
+        plt.title(f"IMF Data ({indicator}) - {latest_year}년 기준 Pie Chart")
+    elif chart_type == "heatmap":
+        # 히트맵 (연도별 경제 지표 변화)
+        pivot_df = df.pivot(index="Country", columns="Year", values="Value")
+        sns.heatmap(pivot_df, annot=True, cmap="coolwarm", fmt=".1f")
+        plt.title(f"IMF Data ({indicator}) - Heatmap")
+    else:
+        # 기본 선 그래프 (Line Chart)
+        for country in countries.split(","): # 입력받은 국가 목록을 ','로 분할하여 리스트로 변환
+            country_df = df[df["Country"] == country] # 특정 국가에 대한 데이터 필터링
 
-        # 해당 국가의 데이터가 없을 경우 경고 메시지 출력 후 건너뜀
-        if country_df.empty:
-            print(f"⚠️ [WARNING] {country}에 대한 데이터가 없음!")
-            continue
-        # 연도를 x축, 경제 지표 값을 y축으로 설정하여 라인 그래프 그리기
-        plt.plot(
-            country_df["Year"], # x축: 연도
-            country_df["Value"], # y축: 경제 지표 값
-            marker="o", # 데이터 포인트를 동그라미로 표시
-            linestyle="-", # 선 스타일: 실선(-)
-            label=country # 범례에 국가명 표시
-        )
+            # 해당 국가의 데이터가 없을 경우 경고 메시지 출력 후 건너뜀
+            if country_df.empty:
+                print(f"⚠️ [WARNING] {country}에 대한 데이터가 없음!")
+                continue
+            # 연도를 x축, 경제 지표 값을 y축으로 설정하여 라인 그래프 그리기
+            plt.plot(
+                country_df["Year"], # x축: 연도
+                country_df["Value"], # y축: 경제 지표 값
+                marker="o", # 데이터 포인트를 동그라미로 표시
+                linestyle="-", # 선 스타일: 실선(-)
+                label=country # 범례에 국가명 표시
+            )
 
-    # 그래프에 레이블 추가
-    plt.xlabel("Year") # x축 라벨 설정
-    plt.ylabel("Value") # y축 라벨 설정
-    plt.title(f"IMF Data ({indicator})") # 그래프 제목 설정
-    plt.legend() # 국가별 범례 추가
-    plt.grid(True)  # 배경에 격자 무늬 추가하여 가독성 향상
+        # 그래프에 레이블 추가
+        plt.xlabel("Year") # x축 라벨 설정
+        plt.ylabel("Value") # y축 라벨 설정
+        plt.title(f"IMF Data ({indicator})") # 그래프 제목 설정
+        plt.legend() # 국가별 범례 추가
 
+    # 배경에 격자 무늬 추가하여 가독성 향상
+    plt.grid(True)
     # 생성된 그래프를 static 폴더 내 plot.png 파일로 저장
     plot_path = os.path.join("static", "plot.png")
     # 그래프를 PNG 이미지로 저장

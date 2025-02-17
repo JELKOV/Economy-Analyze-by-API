@@ -270,6 +270,8 @@ $(document).ready(function () {
         let startYear = parseInt($("#startYear").val());
         // 조회 종료 연도
         let endYear = parseInt($("#endYear").val());
+        // 사용자가 선택한 그래프
+        let chartType = $("#chartType").val();
 
 
         // 유효성 검사 (필수 입력값 확인)
@@ -313,7 +315,7 @@ $(document).ready(function () {
 
         // API 요청 URL 생성
         let apiUrl = `/get-data?indicator=${indicator}&countries=${countries.join(',')}&years=${selectedYears.join(',')}`;
-        let plotUrl = `/plot-data?indicator=${indicator}&countries=${countries.join(',')}&years=${selectedYears.join(',')}`;
+        let plotUrl = `/plot-data?indicator=${indicator}&countries=${countries.join(',')}&years=${selectedYears.join(',')}&type=${chartType}`;
 
         // 데이터 요청 전, 로딩 UI 표시
 
